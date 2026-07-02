@@ -8,7 +8,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; background: #f4f6f9; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
-  .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 2rem; width: 100%; max-width: 640px; }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 2rem; width: 100%; max-width: 660px; }
   h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 0.25rem; }
   .sub { font-size: 14px; color: #666; margin-bottom: 2rem; }
   .step { margin-bottom: 1.25rem; }
@@ -17,46 +17,55 @@
   .file-box:hover { border-color: #4a6cf7; }
   .file-box input { display: none; }
   .file-box .icon { font-size: 28px; margin-bottom: 6px; }
-  .file-box .label { font-size: 13px; color: #666; }
-  .file-box .name { font-size: 13px; color: #4a6cf7; font-weight: 600; margin-top: 4px; }
+  .file-box .lbl { font-size: 13px; color: #666; }
+  .file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .file-item { display: flex; align-items: center; justify-content: space-between; background: #f0f4ff; border-radius: 6px; padding: 6px 10px; font-size: 13px; color: #333; }
+  .file-item span { color: #4a6cf7; font-weight: 600; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item button { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+  .add-more { display: inline-block; margin-top: 8px; font-size: 13px; color: #4a6cf7; cursor: pointer; text-decoration: underline; }
   .step input[type=text] { width: 100%; border: 1.5px solid #dde; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #333; outline: none; }
   .step input[type=text]:focus { border-color: #4a6cf7; }
   button.run { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #4a6cf7; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s; }
   button.run:hover { background: #3a5ce7; }
   button.run:disabled { background: #aab; cursor: not-allowed; }
-  #log { margin-top: 1.5rem; background: #1a1a2e; border-radius: 8px; padding: 1rem; font-size: 13px; color: #ccc; min-height: 60px; white-space: pre-wrap; font-family: monospace; display: none; max-height: 300px; overflow-y: auto; }
+  #log { margin-top: 1.5rem; background: #1a1a2e; border-radius: 8px; padding: 1rem; font-size: 13px; color: #ccc; white-space: pre-wrap; font-family: monospace; display: none; max-height: 350px; overflow-y: auto; }
   .ok { color: #4ade80; }
   .warn { color: #fbbf24; }
   .err { color: #f87171; }
   .info { color: #93c5fd; }
-  button.dl { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #16a34a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: none; transition: background 0.2s; }
+  .sep { color: #555; border-top: 1px solid #333; margin: 6px 0; }
+  button.dl { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #16a34a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: none; }
   button.dl:hover { background: #15803d; }
   .badge { display: inline-block; background: #e8f0fe; color: #4a6cf7; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 2px 10px; margin-left: 8px; vertical-align: middle; }
+  .count-badge { background: #4a6cf7; color: #fff; border-radius: 20px; font-size: 11px; padding: 1px 8px; margin-left: 6px; font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>📊 Gerador de Relatório Mensal de Horas <span class="badge">v3.1</span></h1>
-  <p class="sub">Selecione os dois arquivos, informe o mês e clique em gerar. O relatório Excel é baixado automaticamente.</p>
+  <h1>📊 Gerador de Relatório Mensal de Horas <span class="badge">v4.0</span></h1>
+  <p class="sub">Selecione os arquivos, informe o mês e clique em gerar. Você pode adicionar várias planilhas de ajuste.</p>
 
   <div class="step">
     <label>1. Planilha do sistema (dados dos funcionários)</label>
     <div class="file-box" onclick="document.getElementById('f-sistema').click()">
-      <input type="file" id="f-sistema" accept=".xlsx,.xls" onchange="showName(this,'nome-sistema')">
+      <input type="file" id="f-sistema" accept=".xlsx,.xls" onchange="showSistema(this)">
       <div class="icon">📂</div>
-      <div class="label">Clique para selecionar o arquivo</div>
-      <div class="name" id="nome-sistema"></div>
+      <div class="lbl">Clique para selecionar o arquivo</div>
+      <div style="font-size:13px;color:#4a6cf7;font-weight:600;margin-top:4px;" id="nome-sistema"></div>
     </div>
   </div>
 
   <div class="step">
-    <label>2. Planilha de ajustes recebida por e-mail</label>
-    <div class="file-box" onclick="document.getElementById('f-ajustes').click()">
-      <input type="file" id="f-ajustes" accept=".xlsx,.xls" onchange="showName(this,'nome-ajustes')">
+    <label>2. Planilhas de ajuste recebidas por e-mail <span class="count-badge" id="count-ajustes">0</span></label>
+    <div class="file-box" id="drop-ajustes" onclick="document.getElementById('f-ajustes').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#4a6cf7'"
+         ondragleave="this.style.borderColor=''"
+         ondrop="handleDrop(event)">
+      <input type="file" id="f-ajustes" accept=".xlsx,.xls" multiple onchange="addAjustes(this.files)">
       <div class="icon">📩</div>
-      <div class="label">Clique para selecionar o arquivo</div>
-      <div class="name" id="nome-ajustes"></div>
+      <div class="lbl">Clique para selecionar ou arraste os arquivos aqui<br><small style="color:#999">(pode selecionar vários de uma vez)</small></div>
     </div>
+    <div class="file-list" id="file-list"></div>
   </div>
 
   <div class="step">
@@ -71,9 +80,42 @@
 
 <script>
 let outputWB = null, outputName = '';
+let ajustesFiles = [];
 
-function showName(input, id) {
-  document.getElementById(id).textContent = input.files[0] ? input.files[0].name : '';
+function showSistema(input) {
+  document.getElementById('nome-sistema').textContent = input.files[0] ? input.files[0].name : '';
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  document.getElementById('drop-ajustes').style.borderColor = '';
+  addAjustes(event.dataTransfer.files);
+}
+
+function addAjustes(files) {
+  for (const file of files) {
+    if (!file.name.match(/\.(xlsx|xls)$/i)) continue;
+    if (ajustesFiles.find(f => f.name === file.name)) continue;
+    ajustesFiles.push(file);
+  }
+  renderFileList();
+  document.getElementById('f-ajustes').value = '';
+}
+
+function removeAjuste(idx) {
+  ajustesFiles.splice(idx, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const el = document.getElementById('file-list');
+  document.getElementById('count-ajustes').textContent = ajustesFiles.length;
+  el.innerHTML = ajustesFiles.map((f, i) =>
+    `<div class="file-item">
+      <span>📄 ${f.name}</span>
+      <button onclick="removeAjuste(${i})" title="Remover">✕</button>
+    </div>`
+  ).join('');
 }
 
 function log(msg, cls) {
@@ -86,6 +128,15 @@ function log(msg, cls) {
   el.scrollTop = el.scrollHeight;
 }
 
+function logSep(titulo) {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  const d = document.createElement('div');
+  d.className = 'sep';
+  d.textContent = '── ' + titulo + ' ──';
+  el.appendChild(d);
+}
+
 function clearLog() {
   const el = document.getElementById('log');
   el.innerHTML = ''; el.style.display = 'none';
@@ -93,13 +144,12 @@ function clearLog() {
   outputWB = null;
 }
 
-function readFile(input) {
+function readFile(file) {
   return new Promise((res, rej) => {
-    if (!input.files[0]) return rej('nenhum arquivo selecionado');
     const r = new FileReader();
     r.onload = e => res(new Uint8Array(e.target.result));
-    r.onerror = () => rej('erro ao ler arquivo');
-    r.readAsArrayBuffer(input.files[0]);
+    r.onerror = () => rej('erro ao ler ' + file.name);
+    r.readAsArrayBuffer(file);
   });
 }
 
@@ -119,8 +169,8 @@ function toMinutos(val) {
 }
 
 function minToStr(min) {
-  const neg = min < 0; min = Math.abs(min);
-  return (neg ? '-' : '') + Math.floor(min/60) + ':' + String(min%60).padStart(2,'0') + ':00';
+  const neg = min < 0; const abs = Math.abs(min);
+  return (neg ? '-' : '') + Math.floor(abs/60) + ':' + String(abs%60).padStart(2,'0') + ':00';
 }
 
 function minToFrac(min) { return min / (24 * 60); }
@@ -135,18 +185,52 @@ function buscaParcial(chave, idx) {
   return best;
 }
 
+function lerAjustes(buf) {
+  const wbA = XLSX.read(buf, { type:'array', cellDates:true });
+  let wsA = null;
+  for (const nomAba of wbA.SheetNames) {
+    const rows = XLSX.utils.sheet_to_json(wbA.Sheets[nomAba], { header:1 });
+    const temDados = rows.slice(2,50).some(r => r[1] && !['Nome do Profissional',''].includes(String(r[1]).trim()));
+    if (temDados) { wsA = wbA.Sheets[nomAba]; break; }
+  }
+  if (!wsA) return [];
+
+  const rowsA = XLSX.utils.sheet_to_json(wsA, { header:1, raw:false });
+  const TIPOS = { 'horas extras':'extra', 'horas adicionais':'adicional', 'abate de horas':'abate' };
+  let tipoAtual = null;
+  const apontamentos = [];
+
+  for (const row of rowsA) {
+    const b = String(row[1]||'').trim();
+    const bL = b.toLowerCase();
+    if (TIPOS[bL]) { tipoAtual = TIPOS[bL]; continue; }
+    if (!b || bL==='nome do profissional' || String(row[0]||'').toLowerCase()==='data' || b.startsWith('OBS')) continue;
+    const nome = String(row[1]||'').trim();
+    const horas = row[3];
+    const motivo = String(row[2]||'').trim();
+    if (!nome||!horas||!tipoAtual) continue;
+    const min = toMinutos(horas);
+    if (!min) continue;
+    const dataStr = row[0] ? String(row[0]).trim() : '';
+    apontamentos.push({ nome, tipo:tipoAtual, min, motivo:(dataStr?dataStr+' - ':'')+motivo });
+  }
+  return apontamentos;
+}
+
 async function gerar() {
   clearLog();
   const btn = document.getElementById('btn-gerar');
   btn.disabled = true;
+
   try {
     const mesAno = document.getElementById('mes-ano').value.trim();
     if (!mesAno) { log('Informe o mês/ano do relatório.', 'err'); btn.disabled=false; return; }
+    if (!document.getElementById('f-sistema').files[0]) { log('Selecione a planilha do sistema.', 'err'); btn.disabled=false; return; }
+    if (ajustesFiles.length === 0) { log('Adicione pelo menos uma planilha de ajustes.', 'err'); btn.disabled=false; return; }
 
+    // lê sistema
     log('🔄 Lendo planilha do sistema...', 'info');
-    const bufSistema = await readFile(document.getElementById('f-sistema')).catch(e => { throw 'Planilha do sistema: ' + e; });
-    const bufAjustes = await readFile(document.getElementById('f-ajustes')).catch(e => { throw 'Planilha de ajustes: ' + e; });
-
+    const bufSistema = await readFile(document.getElementById('f-sistema').files[0]);
     const wbS = XLSX.read(bufSistema, { type:'array', cellDates:true });
     const wsS = wbS.Sheets[wbS.SheetNames[0]];
     const rowsS = XLSX.utils.sheet_to_json(wsS, { header:1, raw:false });
@@ -156,17 +240,17 @@ async function gerar() {
       const row = rowsS[i].map(c => normalizar(String(c||'')));
       if (row.includes('nome')) {
         headerIdx = i;
-        row.forEach((v,j) => colMap[v] = j);
+        row.forEach((v,j) => { if(v) colMap[v] = j; });
         break;
       }
     }
     if (headerIdx < 0) throw 'Coluna "Nome" não encontrada na planilha do sistema.';
 
     const cNome   = colMap['nome'] ?? 0;
-    const cEquipe = Object.keys(colMap).find(k => k.includes('equipe')) != null ? colMap[Object.keys(colMap).find(k => k.includes('equipe'))] : 1;
-    const cJorn   = Object.keys(colMap).find(k => k.includes('jornada')) != null ? colMap[Object.keys(colMap).find(k => k.includes('jornada'))] : 2;
-    const cProd   = Object.keys(colMap).find(k => k.includes('produtividade')||k.includes('disponibilidade')) != null ? colMap[Object.keys(colMap).find(k => k.includes('produtividade')||k.includes('disponibilidade'))] : 3;
-    const cHoras  = Object.keys(colMap).find(k => k.includes('produtiva')||k.includes('trabalha')||k.includes('disponiv')) != null ? colMap[Object.keys(colMap).find(k => k.includes('produtiva')||k.includes('trabalha')||k.includes('disponiv'))] : 4;
+    const cEquipe = Object.keys(colMap).find(k => k.includes('equipe')) != null ? colMap[Object.keys(colMap).find(k => k.includes('equipe'))] : 2;
+    const cJorn   = Object.keys(colMap).find(k => k.includes('jornada')) != null ? colMap[Object.keys(colMap).find(k => k.includes('jornada'))] : 3;
+    const cHoras  = Object.keys(colMap).find(k => k.includes('hora') || k.includes('produtiva') || k.includes('trabalha')) != null
+      ? colMap[Object.keys(colMap).find(k => k.includes('hora') || k.includes('produtiva') || k.includes('trabalha'))] : 4;
 
     const funcionarios = [], idx = {};
     for (let i = headerIdx+1; i < rowsS.length; i++) {
@@ -175,93 +259,75 @@ async function gerar() {
       if (!nome) continue;
       const jornMin = toMinutos(row[cJorn]) || 160*60;
       const horasMin = toMinutos(row[cHoras]);
-      let prod = parseFloat(row[cProd]) || 0.85;
-      if (prod > 1) prod /= 100;
-      funcionarios.push({ nome, equipe: String(row[cEquipe]||''), jornMin, prod, horasMin, obsExtra:'', obsAdic:'' });
+      funcionarios.push({ nome, equipe: String(row[cEquipe]||''), jornMin, horasMin, obsExtra:'', obsAdic:'' });
       idx[normalizar(nome)] = funcionarios.length - 1;
     }
     log('✅ ' + funcionarios.length + ' funcionários carregados.', 'ok');
 
-    log('🔄 Lendo planilha de ajustes...', 'info');
-    const wbA = XLSX.read(bufAjustes, { type:'array', cellDates:true });
-    let wsA = null;
-    for (const nomAba of wbA.SheetNames) {
-      const rows = XLSX.utils.sheet_to_json(wbA.Sheets[nomAba], { header:1 });
-      const temDados = rows.slice(2,50).some(r => r[1] && !['Nome do Profissional',''].includes(String(r[1]).trim()));
-      if (temDados) { wsA = wbA.Sheets[nomAba]; break; }
-    }
+    // lê e aplica cada planilha de ajustes
+    let totalApontamentos = 0;
+    const todosNaoEnc = [];
 
-    const apontamentos = [];
-    if (!wsA) {
-      log('⚠️  Planilha de ajustes vazia — gerando sem apontamentos.', 'warn');
-    } else {
-      const rowsA = XLSX.utils.sheet_to_json(wsA, { header:1, raw:false });
-      const TIPOS = { 'horas extras':'extra', 'horas adicionais':'adicional', 'abate de horas':'abate' };
-      let tipoAtual = null;
-      for (const row of rowsA) {
-        const b = String(row[1]||'').trim();
-        const bL = b.toLowerCase();
-        if (TIPOS[bL]) { tipoAtual = TIPOS[bL]; continue; }
-        if (!b || bL==='nome do profissional' || String(row[0]||'').toLowerCase()==='data' || b.startsWith('OBS')) continue;
-        const nome = String(row[1]||'').trim();
-        const horas = row[3];
-        const motivo = String(row[2]||'').trim();
-        if (!nome||!horas||!tipoAtual) continue;
-        const min = toMinutos(horas);
-        if (!min) continue;
-        const dataStr = row[0] ? String(row[0]).trim() : '';
-        apontamentos.push({ nome, tipo:tipoAtual, min, motivo:(dataStr?dataStr+' - ':'')+motivo });
+    for (const file of ajustesFiles) {
+      logSep(file.name);
+      const buf = await readFile(file);
+      const apontamentos = lerAjustes(buf);
+
+      if (apontamentos.length === 0) {
+        log('⚠️  Sem apontamentos neste arquivo.', 'warn');
+        continue;
       }
-      log('✅ ' + apontamentos.length + ' apontamento(s) encontrado(s).', 'ok');
-    }
+      log('📋 ' + apontamentos.length + ' apontamento(s) encontrado(s).', 'info');
 
-    const naoEnc = [];
-    for (const apt of apontamentos) {
-      const chave = normalizar(apt.nome);
-      let pos = idx[chave];
-      if (pos == null) {
-        const match = buscaParcial(chave, idx);
-        if (match != null) {
-          pos = idx[match];
-          log('🔍 Nome aproximado: "' + apt.nome + '" → "' + funcionarios[pos].nome + '"', 'info');
-        } else { naoEnc.push(apt.nome); continue; }
+      for (const apt of apontamentos) {
+        const chave = normalizar(apt.nome);
+        let pos = idx[chave];
+        if (pos == null) {
+          const match = buscaParcial(chave, idx);
+          if (match != null) {
+            pos = idx[match];
+            log('🔍 "' + apt.nome + '" → "' + funcionarios[pos].nome + '"', 'info');
+          } else { todosNaoEnc.push(apt.nome); continue; }
+        }
+        const f = funcionarios[pos];
+        const antes = minToStr(f.horasMin);
+        if (apt.tipo==='extra'||apt.tipo==='adicional') f.horasMin += apt.min;
+        else f.horasMin -= apt.min;
+        const campo = apt.tipo==='extra' ? 'obsExtra' : 'obsAdic';
+        f[campo] += (f[campo]?' | ':'')+apt.motivo;
+        log('✅ ' + apt.nome + ' [' + apt.tipo + '] ' + antes + ' → ' + minToStr(f.horasMin), 'ok');
+        totalApontamentos++;
       }
-      const f = funcionarios[pos];
-      const antes = minToStr(f.horasMin);
-      if (apt.tipo==='extra'||apt.tipo==='adicional') f.horasMin += apt.min;
-      else f.horasMin -= apt.min;
-      const campo = apt.tipo==='extra' ? 'obsExtra' : 'obsAdic';
-      f[campo] += (f[campo]?' | ':'')+apt.motivo;
-      log('✅ ' + apt.nome + ' [' + apt.tipo + '] ' + antes + ' → ' + minToStr(f.horasMin), 'ok');
     }
 
-    if (naoEnc.length) {
-      log('', '');
-      log('⚠️  Nomes não encontrados:', 'warn');
-      naoEnc.forEach(n => log('   - ' + n, 'warn'));
+    if (todosNaoEnc.length) {
+      logSep('Nomes não encontrados');
+      todosNaoEnc.forEach(n => log('⚠️  ' + n, 'warn'));
     }
 
-    log('', '');
-    log('🔄 Gerando relatório Excel...', 'info');
+    logSep('Gerando arquivo');
+    log('Total de apontamentos aplicados: ' + totalApontamentos, 'info');
 
+    // gera Excel
     const cabecalhos = ['Nome','Equipe','Jornada','Disponibilidade esperada','Horas Disponiveis','% Disponibilidade em relação a jornada','Obs Hora Extra > Jornada','Obs  Horas Adicionais > Horas Disponiveis'];
     const outRows = [cabecalhos];
     for (const f of funcionarios) {
-      const jFrac = minToFrac(f.jornMin), hFrac = minToFrac(f.horasMin);
-      outRows.push([f.nome, f.equipe, jFrac, f.prod, hFrac, hFrac/jFrac, f.obsExtra||'', f.obsAdic||'']);
+      const jFrac = minToFrac(f.jornMin);
+      const hFrac = minToFrac(f.horasMin);
+      outRows.push([f.nome, f.equipe, jFrac, 0.85, hFrac, hFrac/jFrac, f.obsExtra||'', f.obsAdic||'']);
     }
 
     const outWS = XLSX.utils.aoa_to_sheet(outRows);
-    outWS['!cols'] = [30,28,14,22,18,20,40,40].map(w => ({ wch:w }));
+    outWS['!cols'] = [30,28,14,14,18,20,40,40].map(w => ({ wch:w }));
     const range = XLSX.utils.decode_range(outWS['!ref']);
     for (let R = 1; R <= range.e.r; R++) {
       const cC = XLSX.utils.encode_cell({r:R,c:2});
-      const cE = XLSX.utils.encode_cell({r:R,c:4});
       const cD = XLSX.utils.encode_cell({r:R,c:3});
+      const cE = XLSX.utils.encode_cell({r:R,c:4});
       const cF = XLSX.utils.encode_cell({r:R,c:5});
       if (outWS[cC]) outWS[cC].z = '[h]:mm:ss';
+      if (outWS[cD]) outWS[cD].z = '0%';
       if (outWS[cE]) outWS[cE].z = '[h]:mm:ss';
-      if (outWS[cD]) outWS[cD].z = '0.00%';
       if (outWS[cF]) outWS[cF].z = '0.00%';
     }
 
