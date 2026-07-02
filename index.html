@@ -293,8 +293,11 @@ async function gerar() {
     const cab=['Nome','Equipe','Jornada','Disponibilidade esperada','Horas Disponiveis','% Disponibilidade em relação a jornada','Obs Hora Extra > Jornada','Obs  Horas Adicionais > Horas Disponiveis'];
     const outRows=[cab];
     for (const f of funcionarios) {
-      const jF=minToFrac(f.jornMin), hF=minToFrac(f.horasMin);
-      outRows.push([f.nome,f.equipe,jF,0.85,hF,hF/jF,f.obsExtra||'',f.obsAdic||'']);
+      const jF=minToFrac(f.jornMin);
+      // horas negativas: salva como texto para evitar erro no Excel
+      const horasVal = f.horasMin < 0 ? minToStr(f.horasMin) : minToFrac(f.horasMin);
+      const pctVal = f.horasMin < 0 ? minToStr(f.horasMin)+' (negativo)' : minToFrac(f.horasMin)/jF;
+      outRows.push([f.nome,f.equipe,jF,0.85,horasVal,pctVal,f.obsExtra||'',f.obsAdic||'']);
     }
     const outWS=XLSX.utils.aoa_to_sheet(outRows);
     outWS['!cols']=[30,28,14,14,18,20,40,40].map(w=>({wch:w}));
@@ -303,7 +306,9 @@ async function gerar() {
       const cC=XLSX.utils.encode_cell({r:R,c:2}), cD=XLSX.utils.encode_cell({r:R,c:3});
       const cE=XLSX.utils.encode_cell({r:R,c:4}), cF=XLSX.utils.encode_cell({r:R,c:5});
       if(outWS[cC])outWS[cC].z='[h]:mm:ss'; if(outWS[cD])outWS[cD].z='0%';
-      if(outWS[cE])outWS[cE].z='[h]:mm:ss'; if(outWS[cF])outWS[cF].z='0.00%';
+      // só aplica formato de hora se o valor for número (positivo)
+      if(outWS[cE] && typeof outWS[cE].v === 'number') outWS[cE].z='[h]:mm:ss';
+      if(outWS[cF] && typeof outWS[cF].v === 'number') outWS[cF].z='0.00%';
     }
     const outWB=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(outWB,outWS,'CONSOLIDADO GERAL');
