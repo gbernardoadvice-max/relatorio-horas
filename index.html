@@ -3,352 +3,407 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Relatório de Horas</title>
+<title>Gerador de Relatório de Horas - FSense</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #f4f6f9; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
-  .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 2rem; width: 100%; max-width: 660px; }
-  h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 0.25rem; }
-  .sub { font-size: 14px; color: #666; margin-bottom: 2rem; }
-  .step { margin-bottom: 1.25rem; }
-  .step label { font-size: 13px; font-weight: 600; color: #444; display: block; margin-bottom: 6px; }
-  .file-box { border: 2px dashed #ccd; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s; background: #fafafa; }
-  .file-box:hover { border-color: #4a6cf7; }
-  .file-box input { display: none; }
-  .file-box .icon { font-size: 28px; margin-bottom: 6px; }
-  .file-box .lbl { font-size: 13px; color: #666; }
-  .file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-  .file-item { display: flex; align-items: center; justify-content: space-between; background: #f0f4ff; border-radius: 6px; padding: 6px 10px; font-size: 13px; color: #333; }
-  .file-item span { color: #4a6cf7; font-weight: 600; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .file-item button { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
-  .add-more { display: inline-block; margin-top: 8px; font-size: 13px; color: #4a6cf7; cursor: pointer; text-decoration: underline; }
-  .step input[type=text] { width: 100%; border: 1.5px solid #dde; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #333; outline: none; }
-  .step input[type=text]:focus { border-color: #4a6cf7; }
-  button.run { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #4a6cf7; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s; }
-  button.run:hover { background: #3a5ce7; }
-  button.run:disabled { background: #aab; cursor: not-allowed; }
-  #log { margin-top: 1.5rem; background: #1a1a2e; border-radius: 8px; padding: 1rem; font-size: 13px; color: #ccc; white-space: pre-wrap; font-family: monospace; display: none; max-height: 350px; overflow-y: auto; }
-  .ok { color: #4ade80; }
-  .warn { color: #fbbf24; }
-  .err { color: #f87171; }
-  .info { color: #93c5fd; }
-  .sep { color: #555; border-top: 1px solid #333; margin: 6px 0; }
-  button.dl { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #16a34a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: none; }
-  button.dl:hover { background: #15803d; }
-  .badge { display: inline-block; background: #e8f0fe; color: #4a6cf7; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 2px 10px; margin-left: 8px; vertical-align: middle; }
-  .count-badge { background: #4a6cf7; color: #fff; border-radius: 20px; font-size: 11px; padding: 1px 8px; margin-left: 6px; font-weight: 600; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f6f9; min-height: 100vh; padding: 2rem 1rem; }
+.container { max-width: 700px; margin: 0 auto; }
+h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 0.25rem; }
+.sub { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #dde; }
+.tab { padding: 10px 28px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+.tab:hover { color: #4a6cf7; }
+.tab.active { color: #4a6cf7; border-bottom-color: #4a6cf7; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.card { background: #fff; border-radius: 0 12px 12px 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 2rem; }
+
+/* Form */
+.step { margin-bottom: 1.25rem; }
+.step label { font-size: 13px; font-weight: 600; color: #444; display: block; margin-bottom: 6px; }
+.file-box { border: 2px dashed #ccd; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s; background: #fafafa; }
+.file-box:hover { border-color: #4a6cf7; }
+.file-box input { display: none; }
+.file-box .icon { font-size: 28px; margin-bottom: 6px; }
+.file-box .lbl { font-size: 13px; color: #666; }
+.file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.file-item { display: flex; align-items: center; justify-content: space-between; background: #f0f4ff; border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.file-item span { color: #4a6cf7; font-weight: 600; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-item button { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+.step input[type=text] { width: 100%; border: 1.5px solid #dde; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #333; outline: none; }
+.step input[type=text]:focus { border-color: #4a6cf7; }
+.count-badge { background: #4a6cf7; color: #fff; border-radius: 20px; font-size: 11px; padding: 1px 8px; margin-left: 6px; font-weight: 600; }
+
+button.run { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #4a6cf7; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+button.run:hover { background: #3a5ce7; }
+button.run:disabled { background: #aab; cursor: not-allowed; }
+button.dl-main { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #16a34a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: none; }
+button.dl-main:hover { background: #15803d; }
+
+#log { margin-top: 1.5rem; background: #1a1a2e; border-radius: 8px; padding: 1rem; font-size: 13px; color: #ccc; white-space: pre-wrap; font-family: monospace; display: none; max-height: 300px; overflow-y: auto; }
+.ok { color: #4ade80; } .warn { color: #fbbf24; } .err { color: #f87171; } .info { color: #93c5fd; }
+.sep-log { color: #555; border-top: 1px solid #333; margin: 6px 0; }
+
+/* Histórico */
+.hist-empty { text-align: center; color: #999; padding: 3rem 1rem; font-size: 14px; }
+.hist-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+.hist-info { flex: 1; }
+.hist-mes { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.hist-data { font-size: 12px; color: #888; margin-top: 2px; }
+.hist-func { font-size: 12px; color: #4a6cf7; margin-top: 2px; }
+.hist-btns { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-dl-hist { padding: 7px 16px; border-radius: 6px; border: none; background: #16a34a; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-del-hist { padding: 7px 10px; border-radius: 6px; border: 1px solid #fca5a5; background: #fff; color: #e53e3e; font-size: 13px; cursor: pointer; }
+.hist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.hist-header span { font-size: 13px; color: #888; }
+.btn-clear-all { padding: 5px 12px; border-radius: 6px; border: 1px solid #dde; background: #fff; color: #666; font-size: 12px; cursor: pointer; }
+.btn-clear-all:hover { border-color: #e53e3e; color: #e53e3e; }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>📊 Gerador de Relatório Mensal de Horas <span class="badge">v4.0</span></h1>
-  <p class="sub">Selecione os arquivos, informe o mês e clique em gerar. Você pode adicionar várias planilhas de ajuste.</p>
+<div class="container">
+  <h1>📊 Gerador de Relatório Mensal de Horas</h1>
+  <p class="sub">FSense — Processamento automático de horas extras, adicionais e abates.</p>
 
-  <div class="step">
-    <label>1. Planilha do sistema (dados dos funcionários)</label>
-    <div class="file-box" onclick="document.getElementById('f-sistema').click()">
-      <input type="file" id="f-sistema" accept=".xlsx,.xls" onchange="showSistema(this)">
-      <div class="icon">📂</div>
-      <div class="lbl">Clique para selecionar o arquivo</div>
-      <div style="font-size:13px;color:#4a6cf7;font-weight:600;margin-top:4px;" id="nome-sistema"></div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('gerar')">⚡ Gerar relatório</div>
+    <div class="tab" onclick="switchTab('historico')">🕘 Histórico <span id="hist-count-tab"></span></div>
+  </div>
+
+  <!-- ABA GERAR -->
+  <div class="tab-content active card" id="tab-gerar">
+    <div class="step">
+      <label>1. Planilha do sistema (dados dos funcionários)</label>
+      <div class="file-box" onclick="document.getElementById('f-sistema').click()">
+        <input type="file" id="f-sistema" accept=".xlsx,.xls" onchange="showSistema(this)">
+        <div class="icon">📂</div>
+        <div class="lbl">Clique para selecionar o arquivo</div>
+        <div style="font-size:13px;color:#4a6cf7;font-weight:600;margin-top:4px;" id="nome-sistema"></div>
+      </div>
     </div>
-  </div>
 
-  <div class="step">
-    <label>2. Planilhas de ajuste recebidas por e-mail <span class="count-badge" id="count-ajustes">0</span></label>
-    <div class="file-box" id="drop-ajustes" onclick="document.getElementById('f-ajustes').click()"
-         ondragover="event.preventDefault();this.style.borderColor='#4a6cf7'"
-         ondragleave="this.style.borderColor=''"
-         ondrop="handleDrop(event)">
-      <input type="file" id="f-ajustes" accept=".xlsx,.xls" multiple onchange="addAjustes(this.files)">
-      <div class="icon">📩</div>
-      <div class="lbl">Clique para selecionar ou arraste os arquivos aqui<br><small style="color:#999">(pode selecionar vários de uma vez)</small></div>
+    <div class="step">
+      <label>2. Planilhas de ajuste recebidas por e-mail <span class="count-badge" id="count-ajustes">0</span></label>
+      <div class="file-box" id="drop-ajustes" onclick="document.getElementById('f-ajustes').click()"
+           ondragover="event.preventDefault();this.style.borderColor='#4a6cf7'"
+           ondragleave="this.style.borderColor=''"
+           ondrop="handleDrop(event)">
+        <input type="file" id="f-ajustes" accept=".xlsx,.xls" multiple onchange="addAjustes(this.files)">
+        <div class="icon">📩</div>
+        <div class="lbl">Clique para selecionar ou arraste os arquivos aqui<br><small style="color:#999">(pode selecionar vários de uma vez)</small></div>
+      </div>
+      <div class="file-list" id="file-list"></div>
     </div>
-    <div class="file-list" id="file-list"></div>
+
+    <div class="step">
+      <label>3. Mês/Ano do relatório</label>
+      <input type="text" id="mes-ano" placeholder="ex: Maio/2026">
+    </div>
+
+    <button class="run" id="btn-gerar" onclick="gerar()">⚡ Gerar relatório</button>
+    <div id="log"></div>
+    <button class="dl-main" id="btn-dl" onclick="baixar()">⬇️ Baixar relatório gerado</button>
   </div>
 
-  <div class="step">
-    <label>3. Mês/Ano do relatório</label>
-    <input type="text" id="mes-ano" placeholder="ex: Maio/2026">
+  <!-- ABA HISTÓRICO -->
+  <div class="tab-content card" id="tab-historico">
+    <div class="hist-header">
+      <span id="hist-total-label">Relatórios salvos neste navegador</span>
+      <button class="btn-clear-all" onclick="limparTudo()">🗑️ Limpar tudo</button>
+    </div>
+    <div id="hist-list"></div>
   </div>
-
-  <button class="run" id="btn-gerar" onclick="gerar()">⚡ Gerar relatório</button>
-  <div id="log"></div>
-  <button class="dl" id="btn-dl" onclick="baixar()">⬇️ Baixar relatório gerado</button>
 </div>
 
 <script>
-let outputWB = null, outputName = '';
+let outputWB = null, outputName = '', outputMesAno = '', outputFuncs = 0;
 let ajustesFiles = [];
 
+// ── Tabs ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='gerar')||(i===1&&tab==='historico')));
+  document.getElementById('tab-gerar').classList.toggle('active', tab==='gerar');
+  document.getElementById('tab-historico').classList.toggle('active', tab==='historico');
+  if (tab==='historico') renderHistorico();
+}
+
+// ── Files ──
 function showSistema(input) {
   document.getElementById('nome-sistema').textContent = input.files[0] ? input.files[0].name : '';
 }
-
-function handleDrop(event) {
-  event.preventDefault();
-  document.getElementById('drop-ajustes').style.borderColor = '';
-  addAjustes(event.dataTransfer.files);
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-ajustes').style.borderColor='';
+  addAjustes(e.dataTransfer.files);
 }
-
 function addAjustes(files) {
-  for (const file of files) {
-    if (!file.name.match(/\.(xlsx|xls)$/i)) continue;
-    if (ajustesFiles.find(f => f.name === file.name)) continue;
-    ajustesFiles.push(file);
+  for (const f of files) {
+    if (!f.name.match(/\.(xlsx|xls)$/i)) continue;
+    if (ajustesFiles.find(x => x.name===f.name)) continue;
+    ajustesFiles.push(f);
   }
   renderFileList();
-  document.getElementById('f-ajustes').value = '';
+  document.getElementById('f-ajustes').value='';
 }
-
-function removeAjuste(idx) {
-  ajustesFiles.splice(idx, 1);
-  renderFileList();
-}
-
+function removeAjuste(i) { ajustesFiles.splice(i,1); renderFileList(); }
 function renderFileList() {
-  const el = document.getElementById('file-list');
   document.getElementById('count-ajustes').textContent = ajustesFiles.length;
-  el.innerHTML = ajustesFiles.map((f, i) =>
-    `<div class="file-item">
-      <span>📄 ${f.name}</span>
-      <button onclick="removeAjuste(${i})" title="Remover">✕</button>
-    </div>`
+  document.getElementById('file-list').innerHTML = ajustesFiles.map((f,i) =>
+    `<div class="file-item"><span>📄 ${f.name}</span><button onclick="removeAjuste(${i})">✕</button></div>`
   ).join('');
 }
 
+// ── Log ──
 function log(msg, cls) {
-  const el = document.getElementById('log');
-  el.style.display = 'block';
-  const line = document.createElement('div');
-  line.className = cls || '';
-  line.textContent = msg;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
+  const el=document.getElementById('log'); el.style.display='block';
+  const d=document.createElement('div'); d.className=cls||''; d.textContent=msg; el.appendChild(d); el.scrollTop=el.scrollHeight;
 }
-
-function logSep(titulo) {
-  const el = document.getElementById('log');
-  el.style.display = 'block';
-  const d = document.createElement('div');
-  d.className = 'sep';
-  d.textContent = '── ' + titulo + ' ──';
-  el.appendChild(d);
+function logSep(t) {
+  const el=document.getElementById('log'); el.style.display='block';
+  const d=document.createElement('div'); d.className='sep-log'; d.textContent='── '+t+' ──'; el.appendChild(d);
 }
-
 function clearLog() {
-  const el = document.getElementById('log');
-  el.innerHTML = ''; el.style.display = 'none';
-  document.getElementById('btn-dl').style.display = 'none';
-  outputWB = null;
+  document.getElementById('log').innerHTML=''; document.getElementById('log').style.display='none';
+  document.getElementById('btn-dl').style.display='none'; outputWB=null;
 }
 
+// ── Helpers ──
 function readFile(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = e => res(new Uint8Array(e.target.result));
-    r.onerror = () => rej('erro ao ler ' + file.name);
+  return new Promise((res,rej) => {
+    const r=new FileReader();
+    r.onload=e=>res(new Uint8Array(e.target.result));
+    r.onerror=()=>rej('erro ao ler '+file.name);
     r.readAsArrayBuffer(file);
   });
 }
-
 function normalizar(s) {
-  return String(s).trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ');
+  return String(s).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
 }
-
 function toMinutos(val) {
-  if (val == null) return 0;
-  if (typeof val === 'number') return Math.round(val * 24 * 60);
-  const s = String(val).trim().replace(/^[+-]/, '');
-  const m = s.match(/^(\d+):(\d{2})(?::(\d{2}))?/);
-  if (m) return parseInt(m[1]) * 60 + parseInt(m[2]) + (m[3] ? Math.round(parseInt(m[3]) / 60) : 0);
+  if (val==null) return 0;
+  if (typeof val==='number') return Math.round(val*24*60);
+  const s=String(val).trim().replace(/^[+-]/,'');
+  const m=s.match(/^(\d+):(\d{2})(?::(\d{2}))?/);
+  if (m) return parseInt(m[1])*60+parseInt(m[2])+(m[3]?Math.round(parseInt(m[3])/60):0);
   return 0;
 }
-
 function minToStr(min) {
-  const neg = min < 0; const abs = Math.abs(min);
-  return (neg ? '-' : '') + Math.floor(abs/60) + ':' + String(abs%60).padStart(2,'0') + ':00';
+  const neg=min<0; const abs=Math.abs(min);
+  return (neg?'-':'')+Math.floor(abs/60)+':'+String(abs%60).padStart(2,'0')+':00';
 }
-
-function minToFrac(min) { return min / (24 * 60); }
-
-function buscaParcial(chave, idx) {
-  const partes = chave.split(' ').filter(p => p.length > 2);
-  let best = null, bestScore = 0;
+function minToFrac(min) { return min/(24*60); }
+function buscaParcial(chave,idx) {
+  const partes=chave.split(' ').filter(p=>p.length>2);
+  let best=null,bestScore=0;
   for (const nome of Object.keys(idx)) {
-    const score = partes.filter(p => nome.includes(p)).length;
-    if (score >= Math.min(2, partes.length) && score > bestScore) { bestScore = score; best = nome; }
+    const score=partes.filter(p=>nome.includes(p)).length;
+    if (score>=Math.min(2,partes.length)&&score>bestScore){bestScore=score;best=nome;}
   }
   return best;
 }
-
 function lerAjustes(buf) {
-  const wbA = XLSX.read(buf, { type:'array', cellDates:true });
-  let wsA = null;
-  for (const nomAba of wbA.SheetNames) {
-    const rows = XLSX.utils.sheet_to_json(wbA.Sheets[nomAba], { header:1 });
-    const temDados = rows.slice(2,50).some(r => r[1] && !['Nome do Profissional',''].includes(String(r[1]).trim()));
-    if (temDados) { wsA = wbA.Sheets[nomAba]; break; }
+  const wbA=XLSX.read(buf,{type:'array',cellDates:true});
+  let wsA=null;
+  for (const n of wbA.SheetNames) {
+    const rows=XLSX.utils.sheet_to_json(wbA.Sheets[n],{header:1});
+    if (rows.slice(2,50).some(r=>r[1]&&!['Nome do Profissional',''].includes(String(r[1]).trim()))) { wsA=wbA.Sheets[n]; break; }
   }
   if (!wsA) return [];
-
-  const rowsA = XLSX.utils.sheet_to_json(wsA, { header:1, raw:false });
-  const TIPOS = { 'horas extras':'extra', 'horas adicionais':'adicional', 'abate de horas':'abate' };
-  let tipoAtual = null;
-  const apontamentos = [];
-
+  const rowsA=XLSX.utils.sheet_to_json(wsA,{header:1,raw:false});
+  const TIPOS={'horas extras':'extra','horas adicionais':'adicional','abate de horas':'abate'};
+  let tipoAtual=null; const apt=[];
   for (const row of rowsA) {
-    const b = String(row[1]||'').trim();
-    const bL = b.toLowerCase();
-    if (TIPOS[bL]) { tipoAtual = TIPOS[bL]; continue; }
-    if (!b || bL==='nome do profissional' || String(row[0]||'').toLowerCase()==='data' || b.startsWith('OBS')) continue;
-    const nome = String(row[1]||'').trim();
-    const horas = row[3];
-    const motivo = String(row[2]||'').trim();
+    const b=String(row[1]||'').trim(), bL=b.toLowerCase();
+    if (TIPOS[bL]){tipoAtual=TIPOS[bL];continue;}
+    if (!b||bL==='nome do profissional'||String(row[0]||'').toLowerCase()==='data'||b.startsWith('OBS')) continue;
+    const nome=String(row[1]||'').trim(), horas=row[3], motivo=String(row[2]||'').trim();
     if (!nome||!horas||!tipoAtual) continue;
-    const min = toMinutos(horas);
-    if (!min) continue;
-    const dataStr = row[0] ? String(row[0]).trim() : '';
-    apontamentos.push({ nome, tipo:tipoAtual, min, motivo:(dataStr?dataStr+' - ':'')+motivo });
+    const min=toMinutos(horas); if (!min) continue;
+    const dataStr=row[0]?String(row[0]).trim():'';
+    apt.push({nome,tipo:tipoAtual,min,motivo:(dataStr?dataStr+' - ':'')+motivo});
   }
-  return apontamentos;
+  return apt;
 }
 
+// ── Gerar ──
 async function gerar() {
   clearLog();
-  const btn = document.getElementById('btn-gerar');
-  btn.disabled = true;
-
+  const btn=document.getElementById('btn-gerar'); btn.disabled=true;
   try {
-    const mesAno = document.getElementById('mes-ano').value.trim();
-    if (!mesAno) { log('Informe o mês/ano do relatório.', 'err'); btn.disabled=false; return; }
-    if (!document.getElementById('f-sistema').files[0]) { log('Selecione a planilha do sistema.', 'err'); btn.disabled=false; return; }
-    if (ajustesFiles.length === 0) { log('Adicione pelo menos uma planilha de ajustes.', 'err'); btn.disabled=false; return; }
+    const mesAno=document.getElementById('mes-ano').value.trim();
+    if (!mesAno){log('Informe o mês/ano do relatório.','err');btn.disabled=false;return;}
+    if (!document.getElementById('f-sistema').files[0]){log('Selecione a planilha do sistema.','err');btn.disabled=false;return;}
+    if (ajustesFiles.length===0){log('Adicione pelo menos uma planilha de ajustes.','err');btn.disabled=false;return;}
 
-    // lê sistema
-    log('🔄 Lendo planilha do sistema...', 'info');
-    const bufSistema = await readFile(document.getElementById('f-sistema').files[0]);
-    const wbS = XLSX.read(bufSistema, { type:'array', cellDates:true });
-    const wsS = wbS.Sheets[wbS.SheetNames[0]];
-    const rowsS = XLSX.utils.sheet_to_json(wsS, { header:1, raw:false });
+    log('🔄 Lendo planilha do sistema...','info');
+    const bufS=await readFile(document.getElementById('f-sistema').files[0]);
+    const wbS=XLSX.read(bufS,{type:'array',cellDates:true});
+    const wsS=wbS.Sheets[wbS.SheetNames[0]];
+    const rowsS=XLSX.utils.sheet_to_json(wsS,{header:1,raw:false});
 
-    let headerIdx = -1, colMap = {};
-    for (let i = 0; i < Math.min(10, rowsS.length); i++) {
-      const row = rowsS[i].map(c => normalizar(String(c||'')));
-      if (row.includes('nome')) {
-        headerIdx = i;
-        row.forEach((v,j) => { if(v) colMap[v] = j; });
-        break;
-      }
+    let headerIdx=-1, colMap={};
+    for (let i=0;i<Math.min(10,rowsS.length);i++) {
+      const row=rowsS[i].map(c=>normalizar(String(c||'')));
+      if (row.includes('nome')){headerIdx=i;row.forEach((v,j)=>{if(v)colMap[v]=j;});break;}
     }
-    if (headerIdx < 0) throw 'Coluna "Nome" não encontrada na planilha do sistema.';
+    if (headerIdx<0) throw 'Coluna "Nome" não encontrada.';
 
-    const cNome   = colMap['nome'] ?? 0;
-    const cEquipe = Object.keys(colMap).find(k => k.includes('equipe')) != null ? colMap[Object.keys(colMap).find(k => k.includes('equipe'))] : 2;
-    const cJorn   = Object.keys(colMap).find(k => k.includes('jornada')) != null ? colMap[Object.keys(colMap).find(k => k.includes('jornada'))] : 3;
-    const cHoras  = Object.keys(colMap).find(k => k.includes('hora') || k.includes('produtiva') || k.includes('trabalha')) != null
-      ? colMap[Object.keys(colMap).find(k => k.includes('hora') || k.includes('produtiva') || k.includes('trabalha'))] : 4;
+    const cNome=colMap['nome']??0;
+    const cEquipe=Object.keys(colMap).find(k=>k.includes('equipe'))!=null?colMap[Object.keys(colMap).find(k=>k.includes('equipe'))]:2;
+    const cJorn=Object.keys(colMap).find(k=>k.includes('jornada'))!=null?colMap[Object.keys(colMap).find(k=>k.includes('jornada'))]:3;
+    const cHoras=Object.keys(colMap).find(k=>k.includes('hora')||k.includes('produtiva')||k.includes('trabalha'))!=null
+      ?colMap[Object.keys(colMap).find(k=>k.includes('hora')||k.includes('produtiva')||k.includes('trabalha'))]:4;
 
-    const funcionarios = [], idx = {};
-    for (let i = headerIdx+1; i < rowsS.length; i++) {
-      const row = rowsS[i];
-      const nome = String(row[cNome]||'').trim();
+    const funcionarios=[],idx={};
+    for (let i=headerIdx+1;i<rowsS.length;i++) {
+      const row=rowsS[i], nome=String(row[cNome]||'').trim();
       if (!nome) continue;
-      const jornMin = toMinutos(row[cJorn]) || 160*60;
-      const horasMin = toMinutos(row[cHoras]);
-      funcionarios.push({ nome, equipe: String(row[cEquipe]||''), jornMin, horasMin, obsExtra:'', obsAdic:'' });
-      idx[normalizar(nome)] = funcionarios.length - 1;
+      funcionarios.push({nome,equipe:String(row[cEquipe]||''),jornMin:toMinutos(row[cJorn])||9600,horasMin:toMinutos(row[cHoras]),obsExtra:'',obsAdic:''});
+      idx[normalizar(nome)]=funcionarios.length-1;
     }
-    log('✅ ' + funcionarios.length + ' funcionários carregados.', 'ok');
+    log('✅ '+funcionarios.length+' funcionários carregados.','ok');
 
-    // lê e aplica cada planilha de ajustes
-    let totalApontamentos = 0;
-    const todosNaoEnc = [];
-
+    let totalApt=0; const naoEnc=[];
     for (const file of ajustesFiles) {
       logSep(file.name);
-      const buf = await readFile(file);
-      const apontamentos = lerAjustes(buf);
-
-      if (apontamentos.length === 0) {
-        log('⚠️  Sem apontamentos neste arquivo.', 'warn');
-        continue;
-      }
-      log('📋 ' + apontamentos.length + ' apontamento(s) encontrado(s).', 'info');
-
-      for (const apt of apontamentos) {
-        const chave = normalizar(apt.nome);
-        let pos = idx[chave];
-        if (pos == null) {
-          const match = buscaParcial(chave, idx);
-          if (match != null) {
-            pos = idx[match];
-            log('🔍 "' + apt.nome + '" → "' + funcionarios[pos].nome + '"', 'info');
-          } else { todosNaoEnc.push(apt.nome); continue; }
-        }
-        const f = funcionarios[pos];
-        const antes = minToStr(f.horasMin);
-        if (apt.tipo==='extra'||apt.tipo==='adicional') f.horasMin += apt.min;
-        else f.horasMin -= apt.min;
-        const campo = apt.tipo==='extra' ? 'obsExtra' : 'obsAdic';
-        f[campo] += (f[campo]?' | ':'')+apt.motivo;
-        log('✅ ' + apt.nome + ' [' + apt.tipo + '] ' + antes + ' → ' + minToStr(f.horasMin), 'ok');
-        totalApontamentos++;
+      const buf=await readFile(file);
+      const apts=lerAjustes(buf);
+      if (!apts.length){log('⚠️  Sem apontamentos.','warn');continue;}
+      log('📋 '+apts.length+' apontamento(s).','info');
+      for (const apt of apts) {
+        const chave=normalizar(apt.nome); let pos=idx[chave];
+        if (pos==null){const m=buscaParcial(chave,idx);if(m!=null){pos=idx[m];log('🔍 "'+apt.nome+'" → "'+funcionarios[pos].nome+'"','info');}else{naoEnc.push(apt.nome);continue;}}
+        const f=funcionarios[pos], antes=minToStr(f.horasMin);
+        if (apt.tipo==='extra'||apt.tipo==='adicional') f.horasMin+=apt.min; else f.horasMin-=apt.min;
+        const campo=apt.tipo==='extra'?'obsExtra':'obsAdic';
+        f[campo]+=(f[campo]?' | ':'')+apt.motivo;
+        log('✅ '+apt.nome+' ['+apt.tipo+'] '+antes+' → '+minToStr(f.horasMin),'ok');
+        totalApt++;
       }
     }
-
-    if (todosNaoEnc.length) {
-      logSep('Nomes não encontrados');
-      todosNaoEnc.forEach(n => log('⚠️  ' + n, 'warn'));
-    }
+    if (naoEnc.length){logSep('Não encontrados');naoEnc.forEach(n=>log('⚠️  '+n,'warn'));}
 
     logSep('Gerando arquivo');
-    log('Total de apontamentos aplicados: ' + totalApontamentos, 'info');
+    log('Total aplicados: '+totalApt,'info');
 
-    // gera Excel
-    const cabecalhos = ['Nome','Equipe','Jornada','Disponibilidade esperada','Horas Disponiveis','% Disponibilidade em relação a jornada','Obs Hora Extra > Jornada','Obs  Horas Adicionais > Horas Disponiveis'];
-    const outRows = [cabecalhos];
+    const cab=['Nome','Equipe','Jornada','Disponibilidade esperada','Horas Disponiveis','% Disponibilidade em relação a jornada','Obs Hora Extra > Jornada','Obs  Horas Adicionais > Horas Disponiveis'];
+    const outRows=[cab];
     for (const f of funcionarios) {
-      const jFrac = minToFrac(f.jornMin);
-      const hFrac = minToFrac(f.horasMin);
-      outRows.push([f.nome, f.equipe, jFrac, 0.85, hFrac, hFrac/jFrac, f.obsExtra||'', f.obsAdic||'']);
+      const jF=minToFrac(f.jornMin), hF=minToFrac(f.horasMin);
+      outRows.push([f.nome,f.equipe,jF,0.85,hF,hF/jF,f.obsExtra||'',f.obsAdic||'']);
     }
-
-    const outWS = XLSX.utils.aoa_to_sheet(outRows);
-    outWS['!cols'] = [30,28,14,14,18,20,40,40].map(w => ({ wch:w }));
-    const range = XLSX.utils.decode_range(outWS['!ref']);
-    for (let R = 1; R <= range.e.r; R++) {
-      const cC = XLSX.utils.encode_cell({r:R,c:2});
-      const cD = XLSX.utils.encode_cell({r:R,c:3});
-      const cE = XLSX.utils.encode_cell({r:R,c:4});
-      const cF = XLSX.utils.encode_cell({r:R,c:5});
-      if (outWS[cC]) outWS[cC].z = '[h]:mm:ss';
-      if (outWS[cD]) outWS[cD].z = '0%';
-      if (outWS[cE]) outWS[cE].z = '[h]:mm:ss';
-      if (outWS[cF]) outWS[cF].z = '0.00%';
+    const outWS=XLSX.utils.aoa_to_sheet(outRows);
+    outWS['!cols']=[30,28,14,14,18,20,40,40].map(w=>({wch:w}));
+    const range=XLSX.utils.decode_range(outWS['!ref']);
+    for (let R=1;R<=range.e.r;R++){
+      const cC=XLSX.utils.encode_cell({r:R,c:2}), cD=XLSX.utils.encode_cell({r:R,c:3});
+      const cE=XLSX.utils.encode_cell({r:R,c:4}), cF=XLSX.utils.encode_cell({r:R,c:5});
+      if(outWS[cC])outWS[cC].z='[h]:mm:ss'; if(outWS[cD])outWS[cD].z='0%';
+      if(outWS[cE])outWS[cE].z='[h]:mm:ss'; if(outWS[cF])outWS[cF].z='0.00%';
     }
+    const outWB=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(outWB,outWS,'CONSOLIDADO GERAL');
+    outputWB=outWB;
+    outputMesAno=mesAno;
+    outputFuncs=funcionarios.length;
+    outputName='Relatorio_'+mesAno.replace('/','_')+'.xlsx';
 
-    const outWB = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(outWB, outWS, 'CONSOLIDADO GERAL');
-    outputWB = outWB;
-    outputName = 'Relatorio_' + mesAno.replace('/','_') + '.xlsx';
+    // salva no histórico
+    salvarHistorico(mesAno, funcionarios.length, totalApt, outWB, outputName);
 
-    log('✅ Relatório gerado com sucesso!', 'ok');
-    document.getElementById('btn-dl').style.display = 'block';
+    log('✅ Relatório gerado com sucesso!','ok');
+    document.getElementById('btn-dl').style.display='block';
+    atualizarContadorTab();
+  } catch(e) { log('❌ Erro: '+e,'err'); }
+  btn.disabled=false;
+}
 
-  } catch(e) {
-    log('❌ Erro: ' + e, 'err');
+function baixar() { if(outputWB) XLSX.writeFile(outputWB,outputName); }
+
+// ── Histórico ──
+function salvarHistorico(mesAno, funcs, apts, wb, nome) {
+  try {
+    const wbBin = XLSX.write(wb, {bookType:'xlsx', type:'base64'});
+    const hist = getHistorico();
+    hist.unshift({
+      id: Date.now(),
+      mesAno,
+      funcs,
+      apts,
+      nome,
+      data: new Date().toLocaleString('pt-BR'),
+      wbBase64: wbBin
+    });
+    const MAX = 20;
+    if (hist.length > MAX) hist.splice(MAX);
+    localStorage.setItem('relatorio_hist', JSON.stringify(hist));
+    atualizarContadorTab();
+  } catch(e) { console.warn('Erro ao salvar histórico:', e); }
+}
+
+function getHistorico() {
+  try { return JSON.parse(localStorage.getItem('relatorio_hist') || '[]'); }
+  catch { return []; }
+}
+
+function atualizarContadorTab() {
+  const n = getHistorico().length;
+  document.getElementById('hist-count-tab').textContent = n > 0 ? '('+n+')' : '';
+}
+
+function renderHistorico() {
+  const hist = getHistorico();
+  const el = document.getElementById('hist-list');
+  document.getElementById('hist-total-label').textContent = hist.length + ' relatório(s) salvo(s) neste navegador';
+  if (!hist.length) {
+    el.innerHTML = '<div class="hist-empty">📭 Nenhum relatório gerado ainda.<br>Gere um relatório para ele aparecer aqui.</div>';
+    return;
   }
-  btn.disabled = false;
+  el.innerHTML = hist.map((h,i) => `
+    <div class="hist-item">
+      <div class="hist-info">
+        <div class="hist-mes">📊 ${h.mesAno}</div>
+        <div class="hist-data">🕒 Gerado em: ${h.data}</div>
+        <div class="hist-func">👥 ${h.funcs} funcionários · ✅ ${h.apts} apontamentos aplicados</div>
+      </div>
+      <div class="hist-btns">
+        <button class="btn-dl-hist" onclick="baixarHist(${i})">⬇️ Baixar</button>
+        <button class="btn-del-hist" onclick="deletarHist(${i})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
 }
 
-function baixar() {
-  if (!outputWB) return;
-  XLSX.writeFile(outputWB, outputName);
+function baixarHist(i) {
+  const hist = getHistorico();
+  const h = hist[i];
+  if (!h) return;
+  try {
+    const wb = XLSX.read(h.wbBase64, {type:'base64'});
+    XLSX.writeFile(wb, h.nome);
+  } catch(e) { alert('Erro ao baixar: ' + e); }
 }
+
+function deletarHist(i) {
+  const hist = getHistorico();
+  hist.splice(i,1);
+  localStorage.setItem('relatorio_hist', JSON.stringify(hist));
+  atualizarContadorTab();
+  renderHistorico();
+}
+
+function limparTudo() {
+  if (!confirm('Apagar todo o histórico?')) return;
+  localStorage.removeItem('relatorio_hist');
+  atualizarContadorTab();
+  renderHistorico();
+}
+
+atualizarContadorTab();
 </script>
 </body>
 </html>
